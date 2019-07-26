@@ -1,0 +1,79 @@
+# R-Data-Exploration-Data-Visualization
+# 1.Download the file ‘parkingLA2017.csv’ from our class Blackboard site.
+# 2.Read this file into your R environment a. What are the dimensions of this dataframe? 
+pk<-read.csv('D:/R datasets/parkingLA2017.csv')
+View(pk)
+dim(pk)
+
+# 3.Filter the dataframe. Create a new object that only contains data for your assigned “Make” of car.For the next set of questions, use this new dataframe. a. What are the dimensions of this new dataframe that only contains the rows for your assigned “Make” of car?
+library(dplyr)
+PLYM<-filter(pk, Make=='PLYM')
+View(PLYM)
+dim(PLYM)
+
+# 4.Dealing with missing values: 
+# 4.a) Are there any missing values in your dataset? 
+# 4.b) Does the variable RP.State.Plate contain any missing values? 
+anyNA(PLYM)
+anyNA(PLYM$RP.State.Plate)
+# 4.c) Find and display the standard deviation for the variable Fine.amount. Does the variable Fine.amount contain any missing values? To deal with this issue, perform an imputation by replacing the NAs with a reasonable alternative. Now, find and display the standard deviation for this variable again.
+sd(PLYM$Fine.amount)
+anyNA(PLYM$Fine.amount)
+PLYM$Fine.amount[is.na(PLYM$Fine.amount)] <- mean(PLYM$Fine.amount, na.rm=TRUE)
+sd(PLYM$Fine.amount)
+# 4.d) Replace any blank cells in the Location column with NA.
+PLYM[PLYM$Location=='']<-NA 
+# 4.e) Now, remove all of the records that contain “NA” for AGENCY.SHORT.NAME from your dataset.
+library(tidyr)
+PLYM<- PLYM %>% drop_na(AGENCY.SHORT.NAME)
+
+# 5.Dealing with the Date data type
+# 5.a Right now, if you call the str() function on your dataset, you’ll see that R does not recognize the Issue.Date variable as a date.
+str(PLYM)
+PLYM$Issue.Date<-as.Date(PLYM$Issue.Date)
+str(PLYM)
+# 5.b. Are the rows currently displayed in chronological (i.e. date) order? How do you know this? Use the arrange() function from dplyr to put the dates in order.
+View(PLYM)
+PLYM<-arrange(PLYM,Issue.Date)
+View(PLYM)
+# 5.c.What month were you born in? Using the subset() function, make a new object that only contains dates for your particular birth month.
+Dates<-subset(PLYM, select=Issue.Date,Issue.Date>='2017-11-01' & Issue.Date<='2017-11-30')
+View(Dates)
+
+# 6.We won’t need to use the variable ‘ticket number’ in our analysis. Remove this column from your dataframe.
+PLYM<-select(PLYM,-Ticket.number) 
+View(PLYM)
+
+# 7.Using the summary() function, find out even more about the distribution of fine amounts. Show a screenshot that displays the Minimum, 1st Quartile, Median, 3rd
+# Quartile, Maximum, and Mean values for parking fine amounts.
+summarize(PLYM,min(Fine.amount),quantile(Fine.amount, 0.25),median(Fine.amount),quantile(Fine.amount, 0.75), max(Fine.amount),mean(Fine.amount)) 
+
+# 8.Identify the five most common types of violation descriptions in your dataset.
+VD<-table(PLYM$Violation.Description)
+View(VD)
+
+# 9.Create a new dataframe that only contains data for the five most common violations.
+library(dplyr)
+PLYM2<-filter(PLYM,Violation.Description %in% c("NO PARK/STREET CLEAN","DISPLAY OF TABS","METER EXP.","PARKED OVER TIME LIMIT","RED ZONE"))
+View(PLYM2)
+
+#You will use this new dataframe for all the following steps in this assignment.
+#10.Using ggplot, create a barplot that displays the number of occurrences for the five most common violations. Be sure to label your axes, to give the graph a title, and to color each of your bars.
+library(ggplot2)
+ggplot(PLYM2,aes(x=Violation.Description))+geom_bar(fill=rainbow(n=5))+ggtitle("Number of Occurrences for top 5 Violations")
+
+#11.How did the average size of a fine vary from agency to agency? (use the AGENCY.SHORT.NAME variable to make this grouping).
+p1<-group_by(PLYM2,AGENCY.SHORT.NAME)
+p2<-summarize(p1,avgsize=mean(Fine.amount))
+p2
+ggplot(p2,aes(x=AGENCY.SHORT.NAME,y=avgsize))+geom_bar(stat = "identity",fill=rainbow(n=7))+ggtitle("Average fine sizes of agencies")
+
+#12.Using ggplot, create a violin plot that shows the agencies on the x-axis, and the fine amounts on the y-axis.
+PLYM2$AGENCY.SHORT.NAME<-as.factor(PLYM2$AGENCY.SHORT.NAME)
+ggplot(PLYM2,aes(x=AGENCY.SHORT.NAME,y=Fine.amount))+geom_violin()+ggtitle("Fine amounts of agencies")
+
+#13. Using ggplot, create a histogram that shows the frequency of ticket issuances per hour of the day. Use different colors to depict different types of violation descriptions.
+ggplot(PLYM2,aes(x=Issue.time,fill=Violation.Description))+geom_histogram(bins=24)+ggtitle("Frequency of Ticket Issuances Per Hour ")
+
+#In a couple of sentences, describe what your histogram is showing you. What meaning could someone take from this? 
+Why (or why not) does this histogram make sense, in terms of what it says about parking violations and times of day?
