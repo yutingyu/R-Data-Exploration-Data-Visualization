@@ -76,4 +76,4 @@ ggplot(PLYM2,aes(x=AGENCY.SHORT.NAME,y=Fine.amount))+geom_violin()+ggtitle("Fine
 ggplot(PLYM2,aes(x=Issue.time,fill=Violation.Description))+geom_histogram(bins=24)+ggtitle("Frequency of Ticket Issuances Per Hour ")
 
 #In a couple of sentences, describe what your histogram is showing you. What meaning could someone take from this? 
-Why (or why not) does this histogram make sense, in terms of what it says about parking violations and times of day?
+#Why (or why not) does this histogram make sense, in terms of what it says about parking violations and times of day?
